@@ -63,6 +63,10 @@
       cursor: pointer;
       transition: transform 0.2s;
       flex-shrink: 0;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      font-size: 14px;
     }
     .app-button:hover {
       transform: scale(1.05);
@@ -132,21 +136,24 @@
   <div class="launcher-menu" id="launcherMenu">
     <input type="text" id="searchBar" class="search-bar" placeholder="Search apps..." oninput="filterApps()">
     <div class="app-list" id="appList">
-      <!-- First app button now opens Granny -->
-      <div class="app-button" onclick="openApp('https://maddox.page/basic-ruffle-player/html/granny/index.html')">
-        <img src="icon.png" alt="Granny" />
+      <div class="app-button" onclick="openApp('game')">
+        <img src="icon.png" alt="App Icon" />
+        Game
       </div>
-      <!-- Add more app-buttons here if needed -->
+      <div class="app-button" onclick="openApp('wallpaper')">
+        <img src="icon.png" alt="Wallpaper Icon" />
+        Wallpaper
+      </div>
     </div>
   </div>
 
-  <div class="app-button" style="position: fixed; top: 50px; left: 50px;" onclick="openApp('https://maddox.page/basic-ruffle-player/html/granny/index.html')">
-    <img src="icon.png" alt="Granny" />
+  <div class="app-button" style="position: fixed; top: 50px; left: 50px;" onclick="openApp('game')">
+    <img src="icon.png" alt="App Icon" />
   </div>
 
   <div class="window" id="window">
     <div class="winbar" id="winbar">
-      <span>Game Window</span>
+      <span id="windowTitle">App Window</span>
       <div class="controls">
         <button onclick="toggleFullscreen(event)">⤢</button>
         <button onclick="closeApp()">✕</button>
@@ -162,8 +169,38 @@
     const searchBar = document.getElementById('searchBar');
     const appList = document.getElementById('appList');
     const winbar = document.getElementById('winbar');
+    const windowTitle = document.getElementById('windowTitle');
 
-    let isMaximized = false;
+    let isMaximized = false; // track fullscreen/maximized state
+
+    // Game URL
+    const gameUrl = "https://maddox.page/basic-ruffle-player/html/granny/index.html";
+
+    // Wallpaper app HTML
+    const wallpaperApp = `
+      <style>
+        body { font-family: sans-serif; background:#222; color:white; margin:0; padding:20px; }
+        h2 { margin-top:0; }
+        input[type=file] { margin:10px 0; }
+        button { padding:6px 12px; margin-top:10px; }
+      </style>
+      <h2>Wallpaper App</h2>
+      <p>Select an image to set as wallpaper:</p>
+      <input type="file" id="wallpaperInput" accept="image/*">
+      <script>
+        const input = document.getElementById('wallpaperInput');
+        input.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+              parent.document.body.style.background = `url('${ev.target.result}') center/cover no-repeat`;
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      <\/script>
+    `;
 
     function toggleLauncherMenu() {
       launcherMenu.style.display = launcherMenu.style.display === 'flex' ? 'none' : 'flex';
@@ -182,13 +219,20 @@
       });
     }
 
-    function openApp(url) {
-      gameFrame.src = url;
+    function openApp(app) {
+      if (app === 'game') {
+        gameFrame.src = gameUrl;
+        windowTitle.innerText = "Granny";
+      } else if (app === 'wallpaper') {
+        gameFrame.srcdoc = wallpaperApp;
+        windowTitle.innerText = "Wallpaper App";
+      }
       windowEl.style.display = 'flex';
       launcherMenu.style.display = 'none';
     }
 
     function closeApp() {
+      gameFrame.srcdoc = "";
       gameFrame.src = "";
       windowEl.style.display = 'none';
       isMaximized = false;
