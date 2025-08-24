@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Launcher</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: url('wallpaper.jpg') center/cover no-repeat;
+      font-family: sans-serif;
+    }
+    .launcher {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      cursor: pointer;
+      z-index: 30;
+    }
+    .launcher-menu {
+      display: none;
+      position: fixed;
+      bottom: 60px;
+      left: 20px;
+      width: 300px;
+      max-height: 400px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      flex-direction: column;
+      z-index: 25;
+    }
+    .search-bar {
+      width: 100%;
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      margin-bottom: 10px;
+    }
+    .app-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      overflow-y: auto;
+      max-height: 340px;
+    }
+    .app-button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100px;
+      height: 100px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+    .app-button:hover {
+      transform: scale(1.05);
+    }
+    .app-button img {
+      max-width: 70px;
+      max-height: 70px;
+    }
+    .window {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80%;
+      height: 80%;
+      background: #0b122b;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      overflow: hidden;
+      flex-direction: column;
+      z-index: 20;
+      transition: all 0.3s ease;
+    }
+    .window.maximized {
+      top: 0 !important;
+      left: 0 !important;
+      transform: none !important;
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 0;
+    }
+    .winbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.1);
+      padding: 8px 12px;
+      color: white;
+      cursor: move;
+      user-select: none;
+    }
+    .controls button {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      margin-left: 6px;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+    }
+    .controls button:hover {
+      background: rgba(255,255,255,0.25);
+    }
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #0b122b;
+    }
+  </style>
+</head>
+<body>
+  <div class="launcher" onclick="toggleLauncherMenu()">Launcher</div>
+
+  <div class="launcher-menu" id="launcherMenu">
+    <input type="text" id="searchBar" class="search-bar" placeholder="Search apps..." oninput="filterApps()">
+    <div class="app-list" id="appList">
+      <div class="app-button" onclick="openApp()">
+        <img src="icon.png" alt="App Icon" />
+      </div>
+      <div class="app-button" onclick="openBackgroundApp()">
+        <img src="https://img.icons8.com/ios-filled/100/picture.png" alt="Background App" />
+      </div>
+    </div>
+  </div>
+
+  <div class="app-button" style="position: fixed; top: 50px; left: 50px;" onclick="openApp()">
+    <img src="icon.png" alt="App Icon" />
+  </div>
+
+  <div class="window" id="window">
+    <div class="winbar" id="winbar">
+      <span>Game Window</span>
+      <div class="controls">
+        <button onclick="toggleFullscreen(event)">⤢</button>
+        <button onclick="closeApp()">✕</button>
+      </div>
+    </div>
+    <iframe id="gameFrame" allowfullscreen></iframe>
+  </div>
+
+  <div class="window" id="backgroundWindow">
+    <div class="winbar">
+      <span>Change Background</span>
+      <div class="controls">
+        <button onclick="closeBackgroundApp()">✕</button>
+      </div>
+    </div>
+    <div style="padding:20px; color:white;">
+      <p>Select a new background image:</p>
+      <input type="file" id="bgInput" accept="image/*">
+    </div>
+  </div>
+
+  <script>
+    const windowEl = document.getElementById('window');
+    const gameFrame = document.getElementById('gameFrame');
+    const launcherMenu = document.getElementById('launcherMenu');
+    const searchBar = document.getElementById('searchBar');
+    const appList = document.getElementById('appList');
+    const winbar = document.getElementById('winbar');
+    const backgroundWindow = document.getElementById('backgroundWindow');
+    const bgInput = document.getElementById('bgInput');
+
+    let isMaximized = false; // track fullscreen/maximized state
+
+    // 👉 Place your custom HTML game code here 👇
+    const customGameCode = `
+      <style>
+        body { background:#111; color:white; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
+      </style>
+      <h1>Your Game Goes Here</h1>
+      <p>Edit the <code>customGameCode</code> variable in the HTML to add your own game!</p>
+    `;
+
+    function toggleLauncherMenu() {
+      launcherMenu.style.display = launcherMenu.style.display === 'flex' ? 'none' : 'flex';
+      if (launcherMenu.style.display === 'flex') {
+        launcherMenu.style.display = 'flex';
+        launcherMenu.style.flexDirection = 'column';
+      }
+    }
+
+    function filterApps() {
+      const query = searchBar.value.toLowerCase();
+      const apps = appList.querySelectorAll('.app-button');
+      apps.forEach(app => {
+        const text = app.innerText.toLowerCase();
+        app.style.display = text.includes(query) ? 'flex' : 'none';
+      });
+    }
+
+    function openApp() {
+      gameFrame.srcdoc = customGameCode;
+      windowEl.style.display = 'flex';
+      launcherMenu.style.display = 'none';
+    }
+
+    function closeApp() {
+      gameFrame.srcdoc = "";
+      windowEl.style.display = 'none';
+      isMaximized = false;
+      windowEl.classList.remove('maximized');
+    }
+
+    function toggleFullscreen(e) {
+      e.stopPropagation();
+      if (isMaximized) {
+        isMaximized = false;
+        if (document.fullscreenElement) document.exitFullscreen();
+        windowEl.classList.remove('maximized');
+      } else {
+        isMaximized = true;
+        if (windowEl.requestFullscreen) {
+          windowEl.requestFullscreen().catch(() => {
+            windowEl.classList.add('maximized');
+          });
+        } else {
+          windowEl.classList.add('maximized');
+        }
+      }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        isMaximized = false;
+        windowEl.classList.remove('maximized');
+      }
+    });
+
+    // Dragging logic
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    winbar.addEventListener('mousedown', (e) => {
+      if (isMaximized) {
+        // exit fullscreen/maximized when dragging starts
+        isMaximized = false;
+        if (document.fullscreenElement) document.exitFullscreen();
+        windowEl.classList.remove('maximized');
+      }
+      isDragging = true;
+      offsetX = e.clientX - windowEl.offsetLeft;
+      offsetY = e.clientY - windowEl.offsetTop;
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging && !isMaximized) {
+        windowEl.style.top = e.clientY - offsetY + 'px';
+        windowEl.style.left = e.clientX - offsetX + 'px';
+        windowEl.style.transform = 'none';
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging) {
+        isDragging = false;
+        document.body.style.userSelect = 'auto';
+      }
+    });
+
+    // Background app
+    function openBackgroundApp() {
+      backgroundWindow.style.display = 'flex';
+      backgroundWindow.style.flexDirection = 'column';
+      launcherMenu.style.display = 'none';
+    }
+
+    function closeBackgroundApp() {
+      backgroundWindow.style.display = 'none';
+    }
+
+    bgInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.body.style.background = `url(${evt.target.result}) center/cover no-repeat`;
+        }
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+</html>
