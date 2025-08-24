@@ -132,17 +132,16 @@
   <div class="launcher-menu" id="launcherMenu">
     <input type="text" id="searchBar" class="search-bar" placeholder="Search apps..." oninput="filterApps()">
     <div class="app-list" id="appList">
-      <div class="app-button" onclick="openApp()">
-        <img src="icon.png" alt="App Icon" />
+      <!-- First app button now opens Granny -->
+      <div class="app-button" onclick="openApp('https://maddox.page/basic-ruffle-player/html/granny/index.html')">
+        <img src="icon.png" alt="Granny" />
       </div>
-      <div class="app-button" onclick="openBackgroundApp()">
-        <img src="https://img.icons8.com/ios-filled/100/picture.png" alt="Background App" />
-      </div>
+      <!-- Add more app-buttons here if needed -->
     </div>
   </div>
 
-  <div class="app-button" style="position: fixed; top: 50px; left: 50px;" onclick="openApp()">
-    <img src="icon.png" alt="App Icon" />
+  <div class="app-button" style="position: fixed; top: 50px; left: 50px;" onclick="openApp('https://maddox.page/basic-ruffle-player/html/granny/index.html')">
+    <img src="icon.png" alt="Granny" />
   </div>
 
   <div class="window" id="window">
@@ -156,19 +155,6 @@
     <iframe id="gameFrame" allowfullscreen></iframe>
   </div>
 
-  <div class="window" id="backgroundWindow">
-    <div class="winbar">
-      <span>Change Background</span>
-      <div class="controls">
-        <button onclick="closeBackgroundApp()">✕</button>
-      </div>
-    </div>
-    <div style="padding:20px; color:white;">
-      <p>Select a new background image:</p>
-      <input type="file" id="bgInput" accept="image/*">
-    </div>
-  </div>
-
   <script>
     const windowEl = document.getElementById('window');
     const gameFrame = document.getElementById('gameFrame');
@@ -176,19 +162,8 @@
     const searchBar = document.getElementById('searchBar');
     const appList = document.getElementById('appList');
     const winbar = document.getElementById('winbar');
-    const backgroundWindow = document.getElementById('backgroundWindow');
-    const bgInput = document.getElementById('bgInput');
 
-    let isMaximized = false; // track fullscreen/maximized state
-
-    // 👉 Place your custom HTML game code here 👇
-    const customGameCode = `
-      <style>
-        body { background:#111; color:white; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
-      </style>
-      <h1>Your Game Goes Here</h1>
-      <p>Edit the <code>customGameCode</code>
-    `;
+    let isMaximized = false;
 
     function toggleLauncherMenu() {
       launcherMenu.style.display = launcherMenu.style.display === 'flex' ? 'none' : 'flex';
@@ -207,14 +182,14 @@
       });
     }
 
-    function openApp() {
-      gameFrame.srcdoc = customGameCode;
+    function openApp(url) {
+      gameFrame.src = url;
       windowEl.style.display = 'flex';
       launcherMenu.style.display = 'none';
     }
 
     function closeApp() {
-      gameFrame.srcdoc = "";
+      gameFrame.src = "";
       windowEl.style.display = 'none';
       isMaximized = false;
       windowEl.classList.remove('maximized');
@@ -251,7 +226,6 @@
 
     winbar.addEventListener('mousedown', (e) => {
       if (isMaximized) {
-        // exit fullscreen/maximized when dragging starts
         isMaximized = false;
         if (document.fullscreenElement) document.exitFullscreen();
         windowEl.classList.remove('maximized');
@@ -274,28 +248,6 @@
       if (isDragging) {
         isDragging = false;
         document.body.style.userSelect = 'auto';
-      }
-    });
-
-    // Background app
-    function openBackgroundApp() {
-      backgroundWindow.style.display = 'flex';
-      backgroundWindow.style.flexDirection = 'column';
-      launcherMenu.style.display = 'none';
-    }
-
-    function closeBackgroundApp() {
-      backgroundWindow.style.display = 'none';
-    }
-
-    bgInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(evt) {
-          document.body.style.background = `url(${evt.target.result}) center/cover no-repeat`;
-        }
-        reader.readAsDataURL(file);
       }
     });
   </script>
