@@ -132,7 +132,6 @@
   const moveAppBtn = document.getElementById('move-app-btn');
 
   let isMoving = false;
-  let offsetX, offsetY;
   let currentUser = null;
 
   showSignup.addEventListener('click', () => { authPage.style.display = 'none'; signupPage.style.display = 'flex'; });
@@ -205,7 +204,10 @@
     }
   });
 
-  grannyIcon.addEventListener('dblclick', () => alert('Launch Granny Game'));
+  // Launch Granny by opening URL in a new window
+  grannyIcon.addEventListener('dblclick', () => {
+    window.open('https://maddox.page/basic-ruffle-player/html/granny/index.html', '_blank');
+  });
 </script>
 </body>
 </html>
