@@ -133,6 +133,7 @@
 
   let isMoving = false;
   let offsetX, offsetY;
+  let currentUser = null;
 
   showSignup.addEventListener('click', () => { authPage.style.display = 'none'; signupPage.style.display = 'flex'; });
   showSignin.addEventListener('click', () => { signupPage.style.display = 'none'; authPage.style.display = 'flex'; });
@@ -141,12 +142,13 @@
   function getUserData(username) { const data = localStorage.getItem('user_'+username); return data ? JSON.parse(data) : null; }
 
   signupBtn.addEventListener('click', () => {
-    const username = document.getElementById('signup-username').value;
-    const password = document.getElementById('signup-password').value;
+    const username = document.getElementById('signup-username').value.trim();
+    const password = document.getElementById('signup-password').value.trim();
     if (!username || !password) return alert('Fill in all fields');
     if (getUserData(username)) return alert('Username exists');
     const data = { password, wallpaper: 'wallpaper.jpg', icons: { granny: { top:50, left:50 } } };
     saveUserData(username, data);
+    currentUser = username;
     alert('Account created!');
     signupPage.style.display='none';
     launcherApps.style.display='block';
@@ -154,11 +156,12 @@
   });
 
   signinBtn.addEventListener('click', () => {
-    const username = document.getElementById('signin-username').value;
-    const password = document.getElementById('signin-password').value;
+    const username = document.getElementById('signin-username').value.trim();
+    const password = document.getElementById('signin-password').value.trim();
     const userData = getUserData(username);
     if (!userData) return alert('User not found');
     if (userData.password !== password) return alert('Wrong password');
+    currentUser = username;
     authPage.style.display='none';
     launcherApps.style.display='block';
     applyUserData(userData);
@@ -166,4 +169,43 @@
 
   function applyUserData(data){
     document.body.style.background = `url('${data.wallpaper}') center/cover no-repeat`;
-    if(data.icons && data.icons.gran
+    if(data.icons && data.icons.granny){
+      grannyIcon.style.top = data.icons.granny.top+'px';
+      grannyIcon.style.left = data.icons.granny.left+'px';
+    }
+  }
+
+  // Right-click menu
+  grannyIcon.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    contextMenu.style.top = e.clientY + 'px';
+    contextMenu.style.left = e.clientX + 'px';
+    contextMenu.style.display = 'flex';
+  });
+
+  document.addEventListener('click', e => { if(!contextMenu.contains(e.target)) contextMenu.style.display = 'none'; });
+
+  moveAppBtn.addEventListener('click', () => { isMoving = true; contextMenu.style.display = 'none'; });
+
+  document.addEventListener('mousemove', e => {
+    if(isMoving){
+      grannyIcon.style.left = e.clientX - 50 + 'px';
+      grannyIcon.style.top = e.clientY - 50 + 'px';
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if(isMoving){
+      isMoving = false;
+      if(currentUser){
+        const data = getUserData(currentUser);
+        data.icons.granny = { top: parseInt(grannyIcon.style.top), left: parseInt(grannyIcon.style.left) };
+        saveUserData(currentUser, data);
+      }
+    }
+  });
+
+  grannyIcon.addEventListener('dblclick', () => alert('Launch Granny Game'));
+</script>
+</body>
+</html>
