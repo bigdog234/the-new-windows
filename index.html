@@ -10,12 +10,14 @@
     font-family: sans-serif;
     background: #222;
     color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     height: 100vh;
+    overflow: hidden;
   }
   .auth-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     background: rgba(0,0,0,0.8);
     padding: 20px;
     border-radius: 10px;
@@ -38,16 +40,27 @@
     background: #0b122b;
     color: white;
   }
+  #launcher {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    background: rgba(0,0,0,0.5);
+    color: white;
+    cursor: pointer;
+    z-index: 1000;
+    display: none;
+  }
   #launcher-apps {
     display: none;
-    position: relative;
+    position: absolute;
     width: 100%;
     height: 100%;
   }
   .desktop-icon {
       width: 100px;
       height: 100px;
-      margin: 10px;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -108,10 +121,16 @@
   <p>Already have an account? <span id="show-signin" style="color:yellow; cursor:pointer;">Sign In</span></p>
 </div>
 
+<div id="launcher">Launcher</div>
+
 <div id="launcher-apps">
   <div class="desktop-icon" id="granny-icon" style="top:50px; left:50px;">
     <img src="granny-logo.png" alt="Granny Game">
     <span>Granny</span>
+  </div>
+  <div class="desktop-icon" id="wallpaper-icon" style="top:50px; left:180px;">
+    <img src="wallpaper-icon.png" alt="Wallpaper">
+    <span>Wallpaper</span>
   </div>
 </div>
 
@@ -123,15 +142,18 @@
   const authPage = document.getElementById('auth-page');
   const signupPage = document.getElementById('signup-page');
   const launcherApps = document.getElementById('launcher-apps');
+  const launcherBtn = document.getElementById('launcher');
   const showSignup = document.getElementById('show-signup');
   const showSignin = document.getElementById('show-signin');
   const signupBtn = document.getElementById('signup-btn');
   const signinBtn = document.getElementById('signin-btn');
   const grannyIcon = document.getElementById('granny-icon');
+  const wallpaperIcon = document.getElementById('wallpaper-icon');
   const contextMenu = document.getElementById('context-menu');
   const moveAppBtn = document.getElementById('move-app-btn');
 
   let isMoving = false;
+  let currentIcon = null;
   let currentUser = null;
 
   showSignup.addEventListener('click', () => { authPage.style.display = 'none'; signupPage.style.display = 'flex'; });
@@ -145,12 +167,13 @@
     const password = document.getElementById('signup-password').value.trim();
     if (!username || !password) return alert('Fill in all fields');
     if (getUserData(username)) return alert('Username exists');
-    const data = { password, wallpaper: 'wallpaper.jpg', icons: { granny: { top:50, left:50 } } };
+    const data = { password, wallpaper: 'wallpaper.jpg', icons: { granny: { top:50, left:50 }, wallpaper: { top:50, left:180 } } };
     saveUserData(username, data);
     currentUser = username;
     alert('Account created!');
     signupPage.style.display='none';
     launcherApps.style.display='block';
+    launcherBtn.style.display='block';
     applyUserData(data);
   });
 
@@ -163,50 +186,72 @@
     currentUser = username;
     authPage.style.display='none';
     launcherApps.style.display='block';
+    launcherBtn.style.display='block';
     applyUserData(userData);
   });
 
   function applyUserData(data){
     document.body.style.background = `url('${data.wallpaper}') center/cover no-repeat`;
-    if(data.icons && data.icons.granny){
+    if(data.icons){
       grannyIcon.style.top = data.icons.granny.top+'px';
       grannyIcon.style.left = data.icons.granny.left+'px';
+      wallpaperIcon.style.top = data.icons.wallpaper.top+'px';
+      wallpaperIcon.style.left = data.icons.wallpaper.left+'px';
     }
   }
 
-  // Right-click menu
-  grannyIcon.addEventListener('contextmenu', e => {
-    e.preventDefault();
-    contextMenu.style.top = e.clientY + 'px';
-    contextMenu.style.left = e.clientX + 'px';
-    contextMenu.style.display = 'flex';
+  launcherBtn.addEventListener('click', () => {
+    launcherApps.style.display = launcherApps.style.display === 'block' ? 'none' : 'block';
   });
+
+  function setupIconDragging(icon){
+    icon.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      currentIcon = icon;
+      contextMenu.style.top = e.clientY + 'px';
+      contextMenu.style.left = e.clientX + 'px';
+      contextMenu.style.display = 'flex';
+    });
+  }
+
+  [grannyIcon, wallpaperIcon].forEach(icon => setupIconDragging(icon));
 
   document.addEventListener('click', e => { if(!contextMenu.contains(e.target)) contextMenu.style.display = 'none'; });
 
   moveAppBtn.addEventListener('click', () => { isMoving = true; contextMenu.style.display = 'none'; });
 
   document.addEventListener('mousemove', e => {
-    if(isMoving){
-      grannyIcon.style.left = e.clientX - 50 + 'px';
-      grannyIcon.style.top = e.clientY - 50 + 'px';
+    if(isMoving && currentIcon){
+      currentIcon.style.left = e.clientX - 50 + 'px';
+      currentIcon.style.top = e.clientY - 50 + 'px';
     }
   });
 
   document.addEventListener('mouseup', () => {
     if(isMoving){
       isMoving = false;
-      if(currentUser){
+      if(currentUser && currentIcon){
         const data = getUserData(currentUser);
-        data.icons.granny = { top: parseInt(grannyIcon.style.top), left: parseInt(grannyIcon.style.left) };
+        if(currentIcon.id === 'granny-icon') data.icons.granny = { top: parseInt(currentIcon.style.top), left: parseInt(currentIcon.style.left) };
+        if(currentIcon.id === 'wallpaper-icon') data.icons.wallpaper = { top: parseInt(currentIcon.style.top), left: parseInt(currentIcon.style.left) };
         saveUserData(currentUser, data);
+        currentIcon = null;
       }
     }
   });
 
-  // Launch Granny by opening URL in a new window
   grannyIcon.addEventListener('dblclick', () => {
     window.open('https://maddox.page/basic-ruffle-player/html/granny/index.html', '_blank');
+  });
+
+  wallpaperIcon.addEventListener('dblclick', () => {
+    const newWallpaper = prompt('Enter wallpaper URL:');
+    if(newWallpaper && currentUser){
+      const data = getUserData(currentUser);
+      data.wallpaper = newWallpaper;
+      saveUserData(currentUser, data);
+      document.body.style.background = `url('${newWallpaper}') center/cover no-repeat`;
+    }
   });
 </script>
 </body>
