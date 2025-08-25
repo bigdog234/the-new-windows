@@ -71,6 +71,7 @@
       backdrop-filter: blur(5px);
       text-align: center;
       position: absolute;
+      display: flex;
   }
   .desktop-icon img {
       max-width: 70px;
@@ -124,11 +125,11 @@
 <div id="launcher">Launcher</div>
 
 <div id="launcher-apps">
-  <div class="desktop-icon" id="granny-icon" style="top:50px; left:50px;">
+  <div class="desktop-icon" id="granny-icon" style="top:50px; left:50px; display:flex;">
     <img src="granny-logo.png" alt="Granny Game">
     <span>Granny</span>
   </div>
-  <div class="desktop-icon" id="wallpaper-icon" style="top:50px; left:180px;">
+  <div class="desktop-icon" id="wallpaper-icon" style="top:50px; left:180px; display:flex;">
     <img src="wallpaper-icon.png" alt="Wallpaper">
     <span>Wallpaper</span>
   </div>
@@ -174,6 +175,8 @@
     signupPage.style.display='none';
     launcherApps.style.display='block';
     launcherBtn.style.display='block';
+    grannyIcon.style.display='flex';
+    wallpaperIcon.style.display='flex';
     applyUserData(data);
   });
 
@@ -187,6 +190,8 @@
     authPage.style.display='none';
     launcherApps.style.display='block';
     launcherBtn.style.display='block';
+    grannyIcon.style.display='flex';
+    wallpaperIcon.style.display='flex';
     applyUserData(userData);
   });
 
