@@ -40,6 +40,9 @@
   }
   #launcher-apps {
     display: none;
+    position: relative;
+    width: 100%;
+    height: 100%;
   }
   .desktop-icon {
       width: 100px;
@@ -64,6 +67,26 @@
       margin-top: 5px;
       color: white;
       font-size: 14px;
+  }
+  .context-menu {
+      position: absolute;
+      background: rgba(0,0,0,0.9);
+      border: 1px solid white;
+      border-radius: 5px;
+      display: none;
+      flex-direction: column;
+      z-index: 2000;
+  }
+  .context-menu button {
+      padding: 5px 10px;
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      text-align: left;
+  }
+  .context-menu button:hover {
+      background: rgba(255,255,255,0.2);
   }
 </style>
 </head>
@@ -92,44 +115,36 @@
   </div>
 </div>
 
+<div class="context-menu" id="context-menu">
+  <button id="move-app-btn">Move App</button>
+</div>
+
 <script>
   const authPage = document.getElementById('auth-page');
   const signupPage = document.getElementById('signup-page');
   const launcherApps = document.getElementById('launcher-apps');
-
   const showSignup = document.getElementById('show-signup');
   const showSignin = document.getElementById('show-signin');
   const signupBtn = document.getElementById('signup-btn');
   const signinBtn = document.getElementById('signin-btn');
+  const grannyIcon = document.getElementById('granny-icon');
+  const contextMenu = document.getElementById('context-menu');
+  const moveAppBtn = document.getElementById('move-app-btn');
 
-  showSignup.addEventListener('click', () => {
-    authPage.style.display = 'none';
-    signupPage.style.display = 'flex';
-  });
+  let isMoving = false;
+  let offsetX, offsetY;
 
-  showSignin.addEventListener('click', () => {
-    signupPage.style.display = 'none';
-    authPage.style.display = 'flex';
-  });
+  showSignup.addEventListener('click', () => { authPage.style.display = 'none'; signupPage.style.display = 'flex'; });
+  showSignin.addEventListener('click', () => { signupPage.style.display = 'none'; authPage.style.display = 'flex'; });
 
-  function saveUserData(username, data) {
-    localStorage.setItem('user_'+username, JSON.stringify(data));
-  }
-
-  function getUserData(username) {
-    const data = localStorage.getItem('user_'+username);
-    return data ? JSON.parse(data) : null;
-  }
+  function saveUserData(username, data) { localStorage.setItem('user_'+username, JSON.stringify(data)); }
+  function getUserData(username) { const data = localStorage.getItem('user_'+username); return data ? JSON.parse(data) : null; }
 
   signupBtn.addEventListener('click', () => {
     const username = document.getElementById('signup-username').value;
     const password = document.getElementById('signup-password').value;
     if (!username || !password) return alert('Fill in all fields');
-
-    if (getUserData(username)) {
-      return alert('Username exists');
-    }
-
+    if (getUserData(username)) return alert('Username exists');
     const data = { password, wallpaper: 'wallpaper.jpg', icons: { granny: { top:50, left:50 } } };
     saveUserData(username, data);
     alert('Account created!');
@@ -144,7 +159,6 @@
     const userData = getUserData(username);
     if (!userData) return alert('User not found');
     if (userData.password !== password) return alert('Wrong password');
-
     authPage.style.display='none';
     launcherApps.style.display='block';
     applyUserData(userData);
@@ -152,41 +166,4 @@
 
   function applyUserData(data){
     document.body.style.background = `url('${data.wallpaper}') center/cover no-repeat`;
-    const grannyIcon = document.getElementById('granny-icon');
-    if(data.icons && data.icons.granny){
-      grannyIcon.style.top = data.icons.granny.top+'px';
-      grannyIcon.style.left = data.icons.granny.left+'px';
-    }
-  }
-
-  // Drag desktop icon
-  const grannyIcon = document.getElementById('granny-icon');
-  let drag = false, offsetX, offsetY;
-  grannyIcon.addEventListener('mousedown', e => {
-    drag = true;
-    offsetX = e.clientX - grannyIcon.offsetLeft;
-    offsetY = e.clientY - grannyIcon.offsetTop;
-  });
-  document.addEventListener('mousemove', e => {
-    if(drag){
-      grannyIcon.style.left = e.clientX - offsetX + 'px';
-      grannyIcon.style.top = e.clientY - offsetY + 'px';
-    }
-  });
-  document.addEventListener('mouseup', () => {
-    if(drag){
-      drag=false;
-      const username = document.getElementById('signin-username').value || document.getElementById('signup-username').value;
-      const data = getUserData(username);
-      data.icons.granny = { top: parseInt(grannyIcon.style.top), left: parseInt(grannyIcon.style.left) };
-      saveUserData(username, data);
-    }
-  });
-
-  // Click icon to launch (for now just alert)
-  grannyIcon.addEventListener('dblclick', () => {
-    alert('Launch Granny Game here');
-  });
-</script>
-</body>
-</html>
+    if(data.icons && data.icons.gran
