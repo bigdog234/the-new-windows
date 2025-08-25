@@ -8,291 +8,233 @@
     body {
       margin: 0;
       height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       background: url('wallpaper.jpg') center/cover no-repeat;
       font-family: sans-serif;
+      overflow: hidden;
     }
-    .launcher {
+    .launcher-btn {
       position: fixed;
       bottom: 20px;
       left: 20px;
       padding: 10px 20px;
       border-radius: 8px;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0,0,0,0.7);
       color: white;
       cursor: pointer;
-      z-index: 30;
+      z-index: 1000;
     }
     .launcher-menu {
-      display: none;
       position: fixed;
-      bottom: 60px;
+      bottom: 70px;
       left: 20px;
-      width: 300px;
+      width: 250px;
       max-height: 400px;
-      background: rgba(0,0,0,0.7);
-      border-radius: 8px;
+      background: rgba(30,30,30,0.95);
+      border-radius: 10px;
       padding: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      display: none;
       flex-direction: column;
-      z-index: 25;
+      gap: 10px;
+      overflow-y: auto;
+      z-index: 999;
     }
     .search-bar {
       width: 100%;
-      padding: 6px;
+      padding: 5px;
       border-radius: 6px;
       border: none;
-      margin-bottom: 10px;
-    }
-    .app-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      overflow-y: auto;
-      max-height: 340px;
+      outline: none;
     }
     .app-button {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100px;
-      height: 100px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.2);
-      backdrop-filter: blur(6px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      cursor: pointer;
-      transition: transform 0.2s;
-      flex-shrink: 0;
-      flex-direction: column;
+      background: rgba(255,255,255,0.1);
       color: white;
+      padding: 8px;
+      border-radius: 6px;
+      cursor: pointer;
       text-align: center;
-      font-size: 14px;
-    }
-    .app-button:hover {
-      transform: scale(1.05);
-    }
-    .app-button img {
-      max-width: 70px;
-      max-height: 70px;
     }
     .window {
+      position: absolute;
+      top: 100px;
+      left: 100px;
+      width: 600px;
+      height: 400px;
+      background: #fff;
+      border: 2px solid #444;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
       display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 80%;
-      height: 80%;
-      background: #0b122b;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-      overflow: hidden;
       flex-direction: column;
-      z-index: 20;
-      transition: all 0.3s ease;
-    }
-    .window.maximized {
-      top: 0 !important;
-      left: 0 !important;
-      transform: none !important;
-      width: 100% !important;
-      height: 100% !important;
-      border-radius: 0;
+      z-index: 500;
     }
     .winbar {
+      height: 30px;
+      background: #333;
+      color: white;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(255,255,255,0.1);
-      padding: 8px 12px;
-      color: white;
-      cursor: move;
-      user-select: none;
+      cursor: grab;
+      padding: 0 10px;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
     }
-    .controls button {
-      background: rgba(255,255,255,0.15);
+    .winbar button {
+      background: transparent;
       border: none;
       color: white;
-      margin-left: 6px;
-      border-radius: 6px;
-      width: 28px;
-      height: 28px;
       cursor: pointer;
-    }
-    .controls button:hover {
-      background: rgba(255,255,255,0.25);
     }
     iframe {
       flex: 1;
-      width: 100%;
       border: none;
-      background: #0b122b;
+    }
+    .content {
+      padding: 10px;
+      flex: 1;
+      overflow: auto;
     }
   </style>
 </head>
 <body>
-  <div class="launcher" onclick="toggleLauncherMenu()">Launcher</div>
-
-  <div class="launcher-menu" id="launcherMenu">
-    <input type="text" id="searchBar" class="search-bar" placeholder="Search apps..." oninput="filterApps()">
-    <div class="app-list" id="appList">
-      <div class="app-button" onclick="openApp('game')">
-        <img src="icon.png" alt="App Icon" />
-        Game
-      </div>
-      <div class="app-button" onclick="openApp('wallpaper')">
-        <img src="icon.png" alt="Wallpaper Icon" />
-        Wallpaper
-      </div>
-    </div>
+  <div class="launcher-btn">Launcher</div>
+  <div class="launcher-menu">
+    <input class="search-bar" type="text" placeholder="Search apps..." />
+    <div class="app-button" data-app="granny">🎮 Play Granny</div>
+    <div class="app-button" data-app="wallpaper">🖼️ Change Wallpaper</div>
   </div>
 
-  <div class="app-button" style="position: fixed; top: 50px; left: 50px;" onclick="openApp('game')">
-    <img src="icon.png" alt="App Icon" />
-  </div>
-
-  <div class="window" id="window">
-    <div class="winbar" id="winbar">
-      <span id="windowTitle">App Window</span>
-      <div class="controls">
-        <button onclick="toggleFullscreen(event)">⤢</button>
-        <button onclick="closeApp()">✕</button>
+  <!-- Game Window -->
+  <div class="window" id="app-window">
+    <div class="winbar">
+      <span>App</span>
+      <div>
+        <button id="fullscreen-btn">⛶</button>
+        <button id="close-btn">✕</button>
       </div>
     </div>
-    <iframe id="gameFrame" allowfullscreen></iframe>
+    <iframe id="app-frame"></iframe>
+  </div>
+
+  <!-- Wallpaper Window -->
+  <div class="window" id="wallpaper-window">
+    <div class="winbar">
+      <span>Change Wallpaper</span>
+      <div>
+        <button id="close-wallpaper">✕</button>
+      </div>
+    </div>
+    <div class="content">
+      <p>Select an image to set as background:</p>
+      <input type="file" id="wallpaper-input" accept="image/*" />
+    </div>
   </div>
 
   <script>
-    const windowEl = document.getElementById('window');
-    const gameFrame = document.getElementById('gameFrame');
-    const launcherMenu = document.getElementById('launcherMenu');
-    const searchBar = document.getElementById('searchBar');
-    const appList = document.getElementById('appList');
-    const winbar = document.getElementById('winbar');
-    const windowTitle = document.getElementById('windowTitle');
+    document.addEventListener("DOMContentLoaded", () => {
+      const launcherBtn = document.querySelector(".launcher-btn");
+      const launcherMenu = document.querySelector(".launcher-menu");
+      const searchBar = document.querySelector(".search-bar");
+      const appButtons = document.querySelectorAll(".app-button");
 
-    let isMaximized = false; // track fullscreen/maximized state
+      const appWindow = document.getElementById("app-window");
+      const appFrame = document.getElementById("app-frame");
+      const closeBtn = document.getElementById("close-btn");
+      const fullscreenBtn = document.getElementById("fullscreen-btn");
 
-    // Game URL
-    const gameUrl = "https://maddox.page/basic-ruffle-player/html/granny/index.html";
+      const wallpaperWindow = document.getElementById("wallpaper-window");
+      const closeWallpaperBtn = document.getElementById("close-wallpaper");
+      const wallpaperInput = document.getElementById("wallpaper-input");
 
-    // Wallpaper app HTML
-    const wallpaperApp = `
-      <style>
-        body { font-family: sans-serif; background:#222; color:white; margin:0; padding:20px; }
-        h2 { margin-top:0; }
-        input[type=file] { margin:10px 0; }
-        button { padding:6px 12px; margin-top:10px; }
-      </style>
-      <h2>Wallpaper App</h2>
-      <p>Select an image to set as wallpaper:</p>
-      <input type="file" id="wallpaperInput" accept="image/*">
-      <script>
-        const input = document.getElementById('wallpaperInput');
-        input.addEventListener('change', (e) => {
-          const file = e.target.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-              parent.document.body.style.background = `url('${ev.target.result}') center/cover no-repeat`;
-            };
-            reader.readAsDataURL(file);
+      let isDragging = false;
+      let offsetX, offsetY;
+      let isFullscreen = false;
+
+      launcherBtn.addEventListener("click", () => {
+        launcherMenu.style.display = launcherMenu.style.display === "flex" ? "none" : "flex";
+      });
+
+      searchBar.addEventListener("input", () => {
+        const val = searchBar.value.toLowerCase();
+        appButtons.forEach(btn => {
+          btn.style.display = btn.textContent.toLowerCase().includes(val) ? "block" : "none";
+        });
+      });
+
+      appButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const app = btn.dataset.app;
+          if (app === "granny") {
+            appFrame.src = "https://maddox.page/basic-ruffle-player/html/granny/index.html";
+            appWindow.style.display = "flex";
+          } else if (app === "wallpaper") {
+            wallpaperWindow.style.display = "flex";
           }
         });
-      <\/script>
-    `;
-
-    function toggleLauncherMenu() {
-      launcherMenu.style.display = launcherMenu.style.display === 'flex' ? 'none' : 'flex';
-      if (launcherMenu.style.display === 'flex') {
-        launcherMenu.style.display = 'flex';
-        launcherMenu.style.flexDirection = 'column';
-      }
-    }
-
-    function filterApps() {
-      const query = searchBar.value.toLowerCase();
-      const apps = appList.querySelectorAll('.app-button');
-      apps.forEach(app => {
-        const text = app.innerText.toLowerCase();
-        app.style.display = text.includes(query) ? 'flex' : 'none';
       });
-    }
 
-    function openApp(app) {
-      if (app === 'game') {
-        gameFrame.src = gameUrl;
-        windowTitle.innerText = "Granny";
-      } else if (app === 'wallpaper') {
-        gameFrame.srcdoc = wallpaperApp;
-        windowTitle.innerText = "Wallpaper App";
-      }
-      windowEl.style.display = 'flex';
-      launcherMenu.style.display = 'none';
-    }
+      closeBtn.addEventListener("click", () => {
+        appWindow.style.display = "none";
+        appFrame.src = "";
+      });
 
-    function closeApp() {
-      gameFrame.srcdoc = "";
-      gameFrame.src = "";
-      windowEl.style.display = 'none';
-      isMaximized = false;
-      windowEl.classList.remove('maximized');
-    }
-
-    function toggleFullscreen(e) {
-      e.stopPropagation();
-      if (isMaximized) {
-        isMaximized = false;
-        if (document.fullscreenElement) document.exitFullscreen();
-        windowEl.classList.remove('maximized');
-      } else {
-        isMaximized = true;
-        if (windowEl.requestFullscreen) {
-          windowEl.requestFullscreen().catch(() => {
-            windowEl.classList.add('maximized');
-          });
+      fullscreenBtn.addEventListener("click", () => {
+        if (!isFullscreen) {
+          appWindow.style.top = 0;
+          appWindow.style.left = 0;
+          appWindow.style.width = "100%";
+          appWindow.style.height = "100%";
+          isFullscreen = true;
         } else {
-          windowEl.classList.add('maximized');
+          appWindow.style.top = "100px";
+          appWindow.style.left = "100px";
+          appWindow.style.width = "600px";
+          appWindow.style.height = "400px";
+          isFullscreen = false;
         }
-      }
-    }
+      });
 
-    document.addEventListener('fullscreenchange', () => {
-      if (!document.fullscreenElement) {
-        isMaximized = false;
-        windowEl.classList.remove('maximized');
-      }
-    });
+      // Dragging logic
+      document.querySelectorAll(".window").forEach(win => {
+        const bar = win.querySelector(".winbar");
+        bar.addEventListener("mousedown", e => {
+          if (isFullscreen && win === appWindow) return; // don't drag in fullscreen
+          isDragging = true;
+          offsetX = e.clientX - win.offsetLeft;
+          offsetY = e.clientY - win.offsetTop;
+          function moveAt(ev) {
+            if (isDragging) {
+              win.style.left = ev.clientX - offsetX + "px";
+              win.style.top = ev.clientY - offsetY + "px";
+            }
+          }
+          function stopDrag() {
+            isDragging = false;
+            document.removeEventListener("mousemove", moveAt);
+            document.removeEventListener("mouseup", stopDrag);
+          }
+          document.addEventListener("mousemove", moveAt);
+          document.addEventListener("mouseup", stopDrag);
+        });
+      });
 
-    // Dragging logic
-    let isDragging = false;
-    let offsetX, offsetY;
+      closeWallpaperBtn.addEventListener("click", () => {
+        wallpaperWindow.style.display = "none";
+      });
 
-    winbar.addEventListener('mousedown', (e) => {
-      if (isMaximized) {
-        isMaximized = false;
-        if (document.fullscreenElement) document.exitFullscreen();
-        windowEl.classList.remove('maximized');
-      }
-      isDragging = true;
-      offsetX = e.clientX - windowEl.offsetLeft;
-      offsetY = e.clientY - windowEl.offsetTop;
-      document.body.style.userSelect = 'none';
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (isDragging && !isMaximized) {
-        windowEl.style.top = e.clientY - offsetY + 'px';
-        windowEl.style.left = e.clientX - offsetX + 'px';
-        windowEl.style.transform = 'none';
-      }
-    });
-
-    document.addEventListener('mouseup', () => {
-      if (isDragging) {
-        isDragging = false;
-        document.body.style.userSelect = 'auto';
-      }
+      wallpaperInput.addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            document.body.style.background = `url('${reader.result}') center/cover no-repeat`;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
     });
   </script>
 </body>
